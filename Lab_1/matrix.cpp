@@ -31,41 +31,47 @@ Matrix::Matrix(int numRows, int numCols)
     this->matrixValues = std::vector<Vector>(numRows, Vector(numCols, 0.0));
 }
 
-Matrix& Matrix::operator+(const Matrix& other)
+Matrix operator+(const Matrix& lhs, const Matrix& rhs)
 {
-    if ((getNumRows() != other.getNumRows()) || (getNumColumns() != other.getNumColumns()))
+    if ((lhs.getNumRows() != rhs.getNumRows()) || (lhs.getNumColumns() != rhs.getNumColumns()))
         throw std::invalid_argument("Matrices have different sizes");
 
-    for (size_t rowIndex = 0; rowIndex < getNumRows(); ++rowIndex)
-        for (size_t colIndex = 0; colIndex < getNumColumns(); ++colIndex)
-            matrixValues[rowIndex][colIndex] += other[rowIndex][colIndex];
+    Matrix result(lhs.getNumRows(), lhs.getNumColumns());
 
-    return *this;
+    for (size_t rowIndex = 0; rowIndex < lhs.getNumRows(); ++rowIndex)
+        for (size_t colIndex = 0; colIndex < lhs.getNumColumns(); ++colIndex)
+            result[rowIndex][colIndex] = lhs[rowIndex][colIndex] + rhs[rowIndex][colIndex];
+
+    return result;
 }
 
-Matrix& Matrix::operator-(const Matrix& other)
+Matrix operator-(const Matrix& lhs, const Matrix& rhs)
 {
-    if ((getNumRows() != other.getNumRows()) || (getNumColumns() != other.getNumColumns()))
+    if ((lhs.getNumRows() != rhs.getNumRows()) || (lhs.getNumColumns() != rhs.getNumColumns()))
         throw std::invalid_argument("Matrices have different sizes");
 
-    for (size_t rowIndex = 0; rowIndex < getNumRows(); ++rowIndex)
-        for (size_t colIndex = 0; colIndex < getNumColumns(); ++colIndex)
-            matrixValues[rowIndex][colIndex] -= other[rowIndex][colIndex];
+    Matrix result(lhs.getNumRows(), lhs.getNumColumns());
 
-    return *this;
+    for (size_t rowIndex = 0; rowIndex < lhs.getNumRows(); ++rowIndex)
+        for (size_t colIndex = 0; colIndex < lhs.getNumColumns(); ++colIndex)
+            result[rowIndex][colIndex] = lhs[rowIndex][colIndex] - rhs[rowIndex][colIndex];
+
+    return result;
 }
 
-Matrix& Matrix::operator*(const Matrix& other)
+Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 {
-    if (getNumColumns() != other.getNumRows())
+    if (lhs.getNumColumns() != rhs.getNumRows())
         throw std::invalid_argument("Can't multiply matrices with given sizes");
 
-    for (size_t rowIndex = 0; rowIndex < getNumRows(); ++rowIndex)
-        for (size_t colIndex = 0; colIndex < other.getNumColumns(); ++colIndex)
-            for (size_t k = 0; k < getNumColumns(); ++k)
-                matrixValues[rowIndex][colIndex] += matrixValues[rowIndex][k] * other[k][colIndex];
+    Matrix result(lhs.getNumRows(), rhs.getNumColumns());
 
-    return *this;
+    for (size_t rowIndex = 0; rowIndex < lhs.getNumRows(); ++rowIndex)
+        for (size_t colIndex = 0; colIndex < rhs.getNumColumns(); ++colIndex)
+            for (size_t k = 0; k < lhs.getNumColumns(); ++k)
+                result[rowIndex][colIndex] += lhs[rowIndex][k] * rhs[k][colIndex];
+
+    return result;
 }
 
 Vector& Matrix::operator[](size_t index)

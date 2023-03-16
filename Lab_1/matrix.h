@@ -18,9 +18,9 @@ public:
 
     Matrix& operator=(const Matrix&) = default;
     Matrix& operator=(Matrix&&) = default;
-    Matrix& operator+(const Matrix& other);
-    Matrix& operator-(const Matrix& other);
-    Matrix& operator*(const Matrix& other);
+    friend Matrix operator+(const Matrix& lhs, const Matrix& rhs);
+    friend Matrix operator-(const Matrix& lhs, const Matrix& rhs);
+    friend Matrix operator*(const Matrix& lhs, const Matrix& rhs);
     Vector& operator[](size_t index);
     Vector operator[](size_t index) const;
 
