@@ -2,6 +2,7 @@
 
 #include "vector.h"
 
+#include <cmath>
 #include <random>
 #include <sstream>
 #include <fstream>
@@ -137,8 +138,16 @@ void Matrix::randomize(double leftBorder, double rightBorder)
 
 double Matrix::calculateEuclidianNorm() const
 {
-    // TODO: calculate euclidian norm for matrix
-    return 0.0;
+    double norm = 0;
+    for (int i = 0; i < getNumRows(); i++)
+    {
+        for (int j = 0; j < getNumColumns(); j++)
+        {
+            norm += std::pow(matrixValues[i][j], 2);
+        }
+    }
+
+    return td::sqrt(norm);
 }
 
 Matrix Matrix::readFromFile(const std::string& filename)
