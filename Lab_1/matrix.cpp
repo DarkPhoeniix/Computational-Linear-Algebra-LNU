@@ -153,7 +153,7 @@ double Matrix::calculateEuclidianNorm() const
         }
     }
 
-    return td::sqrt(norm);
+    return std::sqrt(norm);
 }
 
 Matrix Matrix::readFromFile(const std::string& filename)
