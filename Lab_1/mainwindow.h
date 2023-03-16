@@ -25,12 +25,16 @@ private slots:
     void removeRowFromMatrixA();
     void removeColumnFromMatrixA();
     void randomizeA();
+    void createMatrixA();
+    void setCellA(int rowIndex, int columnIndex);
 
     void loadMatrixB();
     void saveMatrixB();
     void addRowToMatrixB();
     void removeRowFromMatrixB();
     void randomizeB();
+    void createMatrixB();
+    void setCellB(int rowIndex, int columnIndex);
 
     void solve();
 

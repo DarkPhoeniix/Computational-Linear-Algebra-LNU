@@ -32,6 +32,8 @@ public:
     void removeRow();
     void removeColumn();
 
+    void reset(int numRows, int numColumns);
+
     void randomize(double leftBorder, double rightBorder);
 
     double calculateEuclidianNorm() const;

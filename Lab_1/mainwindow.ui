@@ -164,6 +164,7 @@
     <addaction name="action_remove_column_from_A"/>
     <addaction name="separator"/>
     <addaction name="action_randomize_A"/>
+    <addaction name="action_create_matrix_A"/>
    </widget>
    <widget class="QMenu" name="menu_edit_B_matrix">
     <property name="font">
@@ -181,6 +182,7 @@
     <addaction name="action_remove_row_from_B"/>
     <addaction name="separator"/>
     <addaction name="action_randomize_B"/>
+    <addaction name="action_create_matrix_B"/>
    </widget>
    <widget class="QMenu" name="menu_soultion_x">
     <property name="font">
@@ -326,6 +328,16 @@
     <font>
      <pointsize>11</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="action_create_matrix_A">
+   <property name="text">
+    <string>Create matrix...</string>
+   </property>
+  </action>
+  <action name="action_create_matrix_B">
+   <property name="text">
+    <string>Create Matrix...</string>
    </property>
   </action>
  </widget>

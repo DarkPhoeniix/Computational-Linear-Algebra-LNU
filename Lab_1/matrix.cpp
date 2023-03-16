@@ -111,6 +111,14 @@ void Matrix::removeColumn()
         row.removeValue();
 }
 
+void Matrix::reset(int numRows, int numColumns)
+{
+    if ((numRows <= 0) || (numColumns <= 0))
+        throw std::invalid_argument("Invalid size of matrix");
+
+    this->matrixValues = std::vector<Vector>(numRows, Vector(numColumns, 0.0));
+}
+
 void Matrix::randomize(double leftBorder, double rightBorder)
 {
     std::random_device rd;
@@ -146,7 +154,8 @@ Matrix Matrix::readFromFile(const std::string& filename)
 
     std::string line;
     while(std::getline(file, line))
-        matrix.matrixValues.push_back(readMatrixRow(line));
+        if (!line.empty())
+            matrix.matrixValues.push_back(readMatrixRow(line));
 
     return matrix;
 }
