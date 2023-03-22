@@ -7,9 +7,71 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QAction>
-#include <QLayout>
+#include <QMenu>
 
 #include <memory>
+#include <map>
+
+namespace
+{
+std::map<std::string, QAction*> createMatrixToolset()
+{
+    QFont font;
+    font.setPointSize(11);
+
+    QAction* action_load = new QAction();
+    action_load->setObjectName("action_load");
+    action_load->setText(QCoreApplication::translate("MainWindow", "Load matrix", nullptr));
+    action_load->setFont(font);
+
+    QAction* action_save = new QAction();
+    action_save->setObjectName("action_save");
+    action_save->setText(QCoreApplication::translate("MainWindow", "Save matrix", nullptr));
+    action_save->setFont(font);
+
+    QAction* action_add_new_row = new QAction();
+    action_add_new_row->setObjectName("action_add_new_row");
+    action_add_new_row->setText(QCoreApplication::translate("MainWindow", "Add new row", nullptr));
+    action_add_new_row->setFont(font);
+
+    QAction* action_add_new_column = new QAction();
+    action_add_new_column->setObjectName("action_add_new_column");
+    action_add_new_column->setText(QCoreApplication::translate("MainWindow", "Add new column", nullptr));
+    action_add_new_column->setFont(font);
+
+    QAction* action_remove_row = new QAction();
+    action_remove_row->setObjectName("action_remove_row");
+    action_remove_row->setText(QCoreApplication::translate("MainWindow", "Remove row", nullptr));
+    action_remove_row->setFont(font);
+
+    QAction* action_remove_column = new QAction();
+    action_remove_column->setObjectName("action_remove_column");
+    action_remove_column->setText(QCoreApplication::translate("MainWindow", "Remove column", nullptr));
+    action_remove_column->setFont(font);
+
+    QAction* action_randomize = new QAction();
+    action_randomize->setObjectName("action_randomize");
+    action_randomize->setText(QCoreApplication::translate("MainWindow", "Randomize...", nullptr));
+    action_randomize->setFont(font);
+
+    QAction* action_create_matrix = new QAction();
+    action_create_matrix->setObjectName("action_create_matrix");
+    action_create_matrix->setText(QCoreApplication::translate("MainWindow", "Create matrix...", nullptr));
+    action_create_matrix->setFont(font);
+
+    std::map<std::string, QAction*> actions;
+    actions["load"] = action_load;
+    actions["save"] = action_save;
+    actions["add_new_row"] = action_add_new_row;
+    actions["add_new_column"] = action_add_new_column;
+    actions["remove_row"] = action_remove_row;
+    actions["remove_column"] = action_remove_column;
+    actions["randomize"] = action_randomize;
+    actions["create_matrix"] = action_create_matrix;
+
+    return actions;
+}
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -17,27 +79,21 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->action_load_A, &QAction::triggered, this, &MainWindow::loadMatrixA);
-    connect(ui->action_save_A, &QAction::triggered, this, &MainWindow::saveMatrixA);
-    connect(ui->action_add_new_row_to_A, &QAction::triggered, this, &MainWindow::addRowToMatrixA);
-    connect(ui->action_add_new_column_to_A, &QAction::triggered, this, &MainWindow::addColumnToMatrixA);
-    connect(ui->action_remove_row_from_A, &QAction::triggered, this, &MainWindow::removeRowFromMatrixA);
-    connect(ui->action_remove_column_from_A, &QAction::triggered, this, &MainWindow::removeColumnFromMatrixA);
-    connect(ui->action_randomize_A, &QAction::triggered, this, &MainWindow::randomizeA);
-    connect(ui->action_create_matrix_A, &QAction::triggered, this, &MainWindow::createMatrixA);
-    connect(ui->table_A, &QTableWidget::cellChanged, this, &MainWindow::setCellA);
+    createMenubarForMatrixOperations();
 
-    connect(ui->action_load_B, &QAction::triggered, this, &MainWindow::loadMatrixB);
-    connect(ui->action_save_B, &QAction::triggered, this, &MainWindow::saveMatrixB);
-    connect(ui->action_add_new_row_to_B, &QAction::triggered, this, &MainWindow::addRowToMatrixB);
-    connect(ui->action_remove_row_from_B, &QAction::triggered, this, &MainWindow::removeRowFromMatrixB);
-    connect(ui->action_randomize_B, &QAction::triggered, this, &MainWindow::randomizeB);
-    connect(ui->action_create_matrix_B, &QAction::triggered, this, &MainWindow::createMatrixB);
-    connect(ui->table_B, &QTableWidget::cellChanged, this, &MainWindow::setCellB);
+//    connect(ui->table_A, &QTableWidget::cellChanged, this, &MainWindow::setCellA);
 
-    connect(ui->push_button_solve, &QPushButton::clicked, this, &MainWindow::solve);
+//    connect(ui->action_load_B, &QAction::triggered, this, &MainWindow::loadMatrixB);
+//    connect(ui->action_save_B, &QAction::triggered, this, &MainWindow::saveMatrixB);
+//    connect(ui->action_add_new_row_to_B, &QAction::triggered, this, &MainWindow::addRowToMatrixB);
+//    connect(ui->action_remove_row_from_B, &QAction::triggered, this, &MainWindow::removeRowFromMatrixB);
+//    connect(ui->action_randomize_B, &QAction::triggered, this, &MainWindow::randomizeB);
+//    connect(ui->action_create_matrix_B, &QAction::triggered, this, &MainWindow::createMatrixB);
+//    connect(ui->table_B, &QTableWidget::cellChanged, this, &MainWindow::setCellB);
 
-    ui->table_x->setEditTriggers(QTableWidget::NoEditTriggers);
+//    connect(ui->push_button_sle_solver_solve, &QPushButton::clicked, this, &MainWindow::solve);
+
+//    ui->table_x->setEditTriggers(QTableWidget::NoEditTriggers);
 }
 
 MainWindow::~MainWindow()
@@ -45,7 +101,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::loadMatrixA()
+void MainWindow::loadMatrixA_MatrixOperations()
 {
     try
     {
@@ -53,8 +109,8 @@ void MainWindow::loadMatrixA()
 
         if (!filepath.isEmpty())
         {
-            sle.setMatrixA(Matrix::readFromFile(filepath.toStdString()));
-            updateMatrixA();
+            A = Matrix::readFromFile(filepath.toStdString());
+            updateMatrixA_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
@@ -63,14 +119,14 @@ void MainWindow::loadMatrixA()
     }
 }
 
-void MainWindow::saveMatrixA()
+void MainWindow::saveMatrixA_MatrixOperations()
 {
     try
     {
         QString filepath = QFileDialog::getSaveFileName(this);
 
         if (!filepath.isEmpty())
-            Matrix::writeToFile(sle.getMatrixA(), filepath.toStdString());
+            Matrix::writeToFile(A, filepath.toStdString());
     }
     catch(const std::exception& ex)
     {
@@ -78,13 +134,13 @@ void MainWindow::saveMatrixA()
     }
 }
 
-void MainWindow::addRowToMatrixA()
+void MainWindow::addRowToMatrixA_MatrixOperations()
 {
     try
     {
-        sle.getMatrixA().addRow();
+        A.addRow();
 
-        updateMatrixA();
+        updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -92,13 +148,13 @@ void MainWindow::addRowToMatrixA()
     }
 }
 
-void MainWindow::addColumnToMatrixA()
+void MainWindow::addColumnToMatrixA_MatrixOperations()
 {
     try
     {
-        sle.getMatrixA().addColumn();
+        A.addColumn();
 
-        updateMatrixA();
+        updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -106,13 +162,13 @@ void MainWindow::addColumnToMatrixA()
     }
 }
 
-void MainWindow::removeRowFromMatrixA()
+void MainWindow::removeRowFromMatrixA_MatrixOperations()
 {
     try
     {
-        sle.getMatrixA().removeRow();
+        A.removeRow();
 
-        updateMatrixA();
+        updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -120,13 +176,13 @@ void MainWindow::removeRowFromMatrixA()
     }
 }
 
-void MainWindow::removeColumnFromMatrixA()
+void MainWindow::removeColumnFromMatrixA_MatrixOperations()
 {
     try
     {
-        sle.getMatrixA().removeColumn();
+        A.removeColumn();
 
-        updateMatrixA();
+        updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -134,7 +190,7 @@ void MainWindow::removeColumnFromMatrixA()
     }
 }
 
-void MainWindow::randomizeA()
+void MainWindow::randomizeA_MatrixOperations()
 {
     try
     {
@@ -143,9 +199,9 @@ void MainWindow::randomizeA()
         dialog->exec();
 
         if (*ok)
-            sle.getMatrixA().randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+            A.randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
 
-        updateMatrixA();
+        updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -153,7 +209,7 @@ void MainWindow::randomizeA()
     }
 }
 
-void MainWindow::createMatrixA()
+void MainWindow::createMatrixA_MatrixOperations()
 {
     try
     {
@@ -163,8 +219,8 @@ void MainWindow::createMatrixA()
 
         if (*ok)
         {
-            sle.getMatrixA().reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
-            updateMatrixA();
+            A.reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+            updateMatrixA_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
@@ -173,12 +229,12 @@ void MainWindow::createMatrixA()
     }
 }
 
-void MainWindow::setCellA(int rowIndex, int columnIndex)
+void MainWindow::setCellA_MatrixOperations(int rowIndex, int columnIndex)
 {
-    sle.getMatrixA()[rowIndex][columnIndex] = ui->table_A->item(rowIndex, columnIndex)->text().toDouble();
+   A[rowIndex][columnIndex] = ui->table_A_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
 }
 
-void MainWindow::loadMatrixB()
+void MainWindow::loadMatrixB_MatrixOperations()
 {
     try
     {
@@ -186,8 +242,8 @@ void MainWindow::loadMatrixB()
 
         if (!filepath.isEmpty())
         {
-            sle.setMatrixB(Matrix::readFromFile(filepath.toStdString()));
-            updateMatrixB();
+            B = Matrix::readFromFile(filepath.toStdString());
+            updateMatrixB_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
@@ -196,14 +252,14 @@ void MainWindow::loadMatrixB()
     }
 }
 
-void MainWindow::saveMatrixB()
+void MainWindow::saveMatrixB_MatrixOperations()
 {
     try
     {
         QString filepath = QFileDialog::getSaveFileName(this);
 
         if (!filepath.isEmpty())
-            Matrix::writeToFile(sle.getMatrixB(), filepath.toStdString());
+            Matrix::writeToFile(B, filepath.toStdString());
     }
     catch(const std::exception& ex)
     {
@@ -211,13 +267,13 @@ void MainWindow::saveMatrixB()
     }
 }
 
-void MainWindow::addRowToMatrixB()
+void MainWindow::addRowToMatrixB_MatrixOperations()
 {
     try
     {
-        sle.getMatrixB().addRow();
+        B.addRow();
 
-        updateMatrixB();
+        updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -225,13 +281,13 @@ void MainWindow::addRowToMatrixB()
     }
 }
 
-void MainWindow::removeRowFromMatrixB()
+void MainWindow::addColumnToMatrixB_MatrixOperations()
 {
     try
     {
-        sle.getMatrixB().removeRow();
+        B.addColumn();
 
-        updateMatrixB();
+        updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -239,7 +295,35 @@ void MainWindow::removeRowFromMatrixB()
     }
 }
 
-void MainWindow::randomizeB()
+void MainWindow::removeRowFromMatrixB_MatrixOperations()
+{
+    try
+    {
+        B.removeRow();
+
+        updateMatrixB_MatrixOperations();
+    }
+    catch(const std::exception& ex)
+    {
+        showError(ex.what());
+    }
+}
+
+void MainWindow::removeColumnFromMatrixB_MatrixOperations()
+{
+    try
+    {
+        B.removeColumn();
+
+        updateMatrixB_MatrixOperations();
+    }
+    catch(const std::exception& ex)
+    {
+        showError(ex.what());
+    }
+}
+
+void MainWindow::randomizeB_MatrixOperations()
 {
     try
     {
@@ -249,8 +333,8 @@ void MainWindow::randomizeB()
 
         if (*ok)
         {
-            sle.getMatrixB().randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
-            updateMatrixB();
+            B.randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+            updateMatrixB_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
@@ -259,7 +343,7 @@ void MainWindow::randomizeB()
     }
 }
 
-void MainWindow::createMatrixB()
+void MainWindow::createMatrixB_MatrixOperations()
 {
     try
     {
@@ -268,9 +352,9 @@ void MainWindow::createMatrixB()
         dialog->exec();
 
         if (*ok)
-            sle.getMatrixB().reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+            B.reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
 
-        updateMatrixB();
+        updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
@@ -278,23 +362,9 @@ void MainWindow::createMatrixB()
     }
 }
 
-void MainWindow::setCellB(int rowIndex, int columnIndex)
+void MainWindow::setCellB_MatrixOperations(int rowIndex, int columnIndex)
 {
-    sle.getMatrixB()[rowIndex][columnIndex] = ui->table_B->item(rowIndex, columnIndex)->text().toDouble();
-}
-
-void MainWindow::solve()
-{
-    try
-    {
-        sle.solve();
-
-        updateVectorX();
-    }
-    catch(const std::exception& ex)
-    {
-        showError(ex.what());
-    }
+    B[rowIndex][columnIndex] = ui->table_B_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
 }
 
 void MainWindow::showError(const std::string& message)
@@ -304,44 +374,154 @@ void MainWindow::showError(const std::string& message)
     messageBox.show();
 }
 
-void MainWindow::updateMatrixA()
+void MainWindow::updateMatrixA_MatrixOperations()
 {
-    ui->table_A->setRowCount(sle.getMatrixA().getNumRows());
-    ui->table_A->setColumnCount(sle.getMatrixA().getNumColumns());
+    ui->table_A_matrix_operations->setRowCount(A.getNumRows());
+    ui->table_A_matrix_operations->setColumnCount(A.getNumColumns());
 
-    for (size_t i = 0; i < sle.getMatrixA().getNumRows(); ++i)
+    for (size_t i = 0; i < A.getNumRows(); ++i)
     {
-        for (size_t j = 0; j < sle.getMatrixA().getNumColumns(); ++j)
+        for (size_t j = 0; j < A.getNumColumns(); ++j)
         {
-            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getMatrixA()[i][j]));
-            ui->table_A->setItem(i, j, item);
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(A[i][j]));
+            ui->table_A_matrix_operations->setItem(i, j, item);
         }
     }
 }
 
-void MainWindow::updateMatrixB()
+void MainWindow::updateMatrixB_MatrixOperations()
 {
-    ui->table_B->setRowCount(sle.getMatrixB().getNumRows());
-    ui->table_B->setColumnCount(sle.getMatrixB().getNumColumns());
+    ui->table_B_matrix_operations->setRowCount(B.getNumRows());
+    ui->table_B_matrix_operations->setColumnCount(B.getNumColumns());
 
-    for (size_t i = 0; i < sle.getMatrixB().getNumRows(); ++i)
+    for (size_t i = 0; i < B.getNumRows(); ++i)
     {
-        for (size_t j = 0; j < sle.getMatrixB().getNumColumns(); ++j)
+        for (size_t j = 0; j < B.getNumColumns(); ++j)
         {
-            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getMatrixB()[i][j]));
-            ui->table_B->setItem(i, j, item);
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(B[i][j]));
+            ui->table_B_matrix_operations->setItem(i, j, item);
         }
     }
 }
 
-void MainWindow::updateVectorX()
+void MainWindow::updateMatrixC_MatrixOperations()
 {
-    ui->table_x->setRowCount(sle.getVectorX().getSize());
-    ui->table_x->setColumnCount(1);
+    ui->table_C_matrix_operations->setRowCount(C.getNumRows());
+    ui->table_C_matrix_operations->setColumnCount(C.getNumColumns());
 
-    for (size_t i = 0; i < sle.getVectorX().getSize(); ++i)
+    for (size_t i = 0; i < C.getNumRows(); ++i)
     {
-        QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getVectorX()[i]));
-        ui->table_x->setItem(i, 0, item);
+        for (size_t j = 0; j < C.getNumColumns(); ++j)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(C[i][j]));
+            ui->table_C_matrix_operations->setItem(i, j, item);
+        }
     }
+}
+
+void MainWindow::createMenubarForMatrixOperations()
+{
+    createMatrixAMenu_MatrixOperations();
+//    createMatrixAToolset(ui->push_button_sle_solver_matrix_A);
+//    createMatrixBToolset(ui->tab_matrix_operations);
+    //createMatrixResultToolset(ui->tab_matrix_operations);
+}
+
+void MainWindow::createMenubarForSLESolver()
+{
+
+}
+
+void MainWindow::createMatrixAMenu_MatrixOperations()
+{
+    auto actions = createMatrixToolset();
+
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_A_matrix_operations");
+    matrixToolset->addAction(actions["load"]);
+    matrixToolset->addAction(actions["save"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["add_new_row"]);
+    matrixToolset->addAction(actions["add_new_column"]);
+    matrixToolset->addAction(actions["remove_row"]);
+    matrixToolset->addAction(actions["remove_column"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["randomize"]);
+    matrixToolset->addAction(actions["create_matrix"]);
+
+    connect(actions["load"], &QAction::triggered, this, &MainWindow::loadMatrixA_MatrixOperations);
+    connect(actions["save"], &QAction::triggered, this, &MainWindow::saveMatrixA_MatrixOperations);
+    connect(actions["add_new_row"], &QAction::triggered, this, &MainWindow::addRowToMatrixA_MatrixOperations);
+    connect(actions["add_new_column"], &QAction::triggered, this, &MainWindow::addColumnToMatrixA_MatrixOperations);
+    connect(actions["remove_row"], &QAction::triggered, this, &MainWindow::removeRowFromMatrixA_MatrixOperations);
+    connect(actions["remove_column"], &QAction::triggered, this, &MainWindow::removeColumnFromMatrixA_MatrixOperations);
+    connect(actions["randomize"], &QAction::triggered, this, &MainWindow::randomizeA_MatrixOperations);
+    connect(actions["create_matrix"], &QAction::triggered, this, &MainWindow::createMatrixA_MatrixOperations);
+
+    ui->push_button_matrix_A_matrix_operations->setMenu(matrixToolset);
+}
+
+void MainWindow::createMatrixBMenu_MatrixOperations()
+{
+//    QFont font;
+//    font.setPointSize(11);
+
+//    QAction* action_load_B = new QAction();
+//    action_load_B->setObjectName("action_load_B");
+//    action_load_B->setText(QCoreApplication::translate("MainWindow", "Load matrix", nullptr));
+//    action_load_B->setFont(font);
+
+//    QAction* action_save_B = new QAction();
+//    action_save_B->setObjectName("action_save_B");
+//    action_save_B->setText(QCoreApplication::translate("MainWindow", "Save matrix", nullptr));
+//    action_save_B->setFont(font);
+
+//    QAction* action_add_new_row_to_B = new QAction();
+//    action_add_new_row_to_B->setObjectName("action_add_new_row_to_B");
+//    action_add_new_row_to_B->setText(QCoreApplication::translate("MainWindow", "Add new row", nullptr));
+//    action_add_new_row_to_B->setFont(font);
+
+//    QAction* action_add_new_column_to_B = new QAction();
+//    action_add_new_column_to_B->setObjectName("action_add_new_column_to_B");
+//    action_add_new_column_to_B->setText(QCoreApplication::translate("MainWindow", "Add new column", nullptr));
+//    action_add_new_column_to_B->setFont(font);
+
+//    QAction* action_remove_row_from_B = new QAction();
+//    action_remove_row_from_B->setObjectName("action_remove_row_from_B");
+//    action_remove_row_from_B->setText(QCoreApplication::translate("MainWindow", "Remove row", nullptr));
+//    action_remove_row_from_B->setFont(font);
+
+//    QAction* action_remove_column_from_B = new QAction();
+//    action_remove_column_from_B->setObjectName("action_remove_column_from_B");
+//    action_remove_column_from_B->setText(QCoreApplication::translate("MainWindow", "Remove column", nullptr));
+//    action_remove_column_from_B->setFont(font);
+
+//    QAction* action_randomize_B = new QAction();
+//    action_randomize_B->setObjectName("action_randomize_B");
+//    action_randomize_B->setText(QCoreApplication::translate("MainWindow", "Randomize...", nullptr));
+//    action_randomize_B->setFont(font);
+
+//    QAction* action_create_matrix_B = new QAction();
+//    action_create_matrix_B->setObjectName("action_create_matrix_B");
+//    action_create_matrix_B->setText(QCoreApplication::translate("MainWindow", "Create matrix...", nullptr));
+//    action_create_matrix_B->setFont(font);
+
+//    QMenu* toolbar_matrix_operations_matrix_B = new QMenu();
+//    toolbar_matrix_operations_matrix_B->addAction(action_load_B);
+//    toolbar_matrix_operations_matrix_B->addAction(action_save_B);
+//    toolbar_matrix_operations_matrix_B->addSeparator();
+//    toolbar_matrix_operations_matrix_B->addAction(action_add_new_row_to_B);
+//    toolbar_matrix_operations_matrix_B->addAction(action_add_new_column_to_B);
+//    toolbar_matrix_operations_matrix_B->addAction(action_remove_row_from_B);
+//    toolbar_matrix_operations_matrix_B->addAction(action_remove_column_from_B);
+//    toolbar_matrix_operations_matrix_B->addSeparator();
+//    toolbar_matrix_operations_matrix_B->addAction(action_randomize_B);
+//    toolbar_matrix_operations_matrix_B->addAction(action_create_matrix_B);
+
+    //    ui->push_button_matrix_B_matrix_operations->setMenu(toolbar_matrix_operations_matrix_B);
+}
+
+void MainWindow::createMatrixCMenu_MatrixOperations()
+{
+
 }

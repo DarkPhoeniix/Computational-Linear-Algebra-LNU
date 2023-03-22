@@ -9,6 +9,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class QPushButton;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -18,35 +20,47 @@ public:
     ~MainWindow();
 
 private slots:
-    void loadMatrixA();
-    void saveMatrixA();
-    void addRowToMatrixA();
-    void addColumnToMatrixA();
-    void removeRowFromMatrixA();
-    void removeColumnFromMatrixA();
-    void randomizeA();
-    void createMatrixA();
-    void setCellA(int rowIndex, int columnIndex);
+    void loadMatrixA_MatrixOperations();
+    void saveMatrixA_MatrixOperations();
+    void addRowToMatrixA_MatrixOperations();
+    void addColumnToMatrixA_MatrixOperations();
+    void removeRowFromMatrixA_MatrixOperations();
+    void removeColumnFromMatrixA_MatrixOperations();
+    void randomizeA_MatrixOperations();
+    void createMatrixA_MatrixOperations();
+    void setCellA_MatrixOperations(int rowIndex, int columnIndex);
 
-    void loadMatrixB();
-    void saveMatrixB();
-    void addRowToMatrixB();
-    void removeRowFromMatrixB();
-    void randomizeB();
-    void createMatrixB();
-    void setCellB(int rowIndex, int columnIndex);
-
-    void solve();
+    void loadMatrixB_MatrixOperations();
+    void saveMatrixB_MatrixOperations();
+    void addRowToMatrixB_MatrixOperations();
+    void addColumnToMatrixB_MatrixOperations();
+    void removeRowFromMatrixB_MatrixOperations();
+    void removeColumnFromMatrixB_MatrixOperations();
+    void randomizeB_MatrixOperations();
+    void createMatrixB_MatrixOperations();
+    void setCellB_MatrixOperations(int rowIndex, int columnIndex);
 
 private:
     void showError(const std::string& message);
 
-    void updateMatrixA();
-    void updateMatrixB();
-    void updateVectorX();
+    void updateMatrixA_MatrixOperations();
+    void updateMatrixB_MatrixOperations();
+    void updateMatrixC_MatrixOperations();
+
+    void createMenubarForMatrixOperations();
+    void createMenubarForSLESolver();
+
+    void createMatrixAMenu_MatrixOperations();
+    void createMatrixBMenu_MatrixOperations();
+    void createMatrixCMenu_MatrixOperations();
 
 private:
     Ui::MainWindow *ui;
+
+    Matrix A;
+    Matrix B;
+    Matrix C;
+
     SLE sle;
 };
 #endif // MAINWINDOW_H
