@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include "randomization.h"
 #include "set_matrix_size.h"
+#include "helpers.h"
 
 #include <QPushButton>
 #include <QMessageBox>
@@ -79,21 +80,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    createMenubarForMatrixOperations();
+    createMatrixAMenu_MatrixOperations();
+    createMatrixBMenu_MatrixOperations();
+    createMatrixCMenu_MatrixOperations();
 
-//    connect(ui->table_A, &QTableWidget::cellChanged, this, &MainWindow::setCellA);
-
-//    connect(ui->action_load_B, &QAction::triggered, this, &MainWindow::loadMatrixB);
-//    connect(ui->action_save_B, &QAction::triggered, this, &MainWindow::saveMatrixB);
-//    connect(ui->action_add_new_row_to_B, &QAction::triggered, this, &MainWindow::addRowToMatrixB);
-//    connect(ui->action_remove_row_from_B, &QAction::triggered, this, &MainWindow::removeRowFromMatrixB);
-//    connect(ui->action_randomize_B, &QAction::triggered, this, &MainWindow::randomizeB);
-//    connect(ui->action_create_matrix_B, &QAction::triggered, this, &MainWindow::createMatrixB);
-//    connect(ui->table_B, &QTableWidget::cellChanged, this, &MainWindow::setCellB);
-
-//    connect(ui->push_button_sle_solver_solve, &QPushButton::clicked, this, &MainWindow::solve);
-
-//    ui->table_x->setEditTriggers(QTableWidget::NoEditTriggers);
+    createMatrixAMenu_SLESolver();
+    createMatrixBMenu_SLESolver();
+    createVectorXMenu_SLESolver();
 }
 
 MainWindow::~MainWindow()
@@ -109,13 +102,13 @@ void MainWindow::loadMatrixA_MatrixOperations()
 
         if (!filepath.isEmpty())
         {
-            A = Matrix::readFromFile(filepath.toStdString());
+            A = std::make_unique<Matrix>(Matrix::readFromFile(filepath.toStdString()));
             updateMatrixA_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -123,14 +116,17 @@ void MainWindow::saveMatrixA_MatrixOperations()
 {
     try
     {
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
         QString filepath = QFileDialog::getSaveFileName(this);
 
         if (!filepath.isEmpty())
-            Matrix::writeToFile(A, filepath.toStdString());
+            Matrix::writeToFile(*A, filepath.toStdString());
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -138,13 +134,16 @@ void MainWindow::addRowToMatrixA_MatrixOperations()
 {
     try
     {
-        A.addRow();
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
+        A->addRow();
 
         updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -152,13 +151,16 @@ void MainWindow::addColumnToMatrixA_MatrixOperations()
 {
     try
     {
-        A.addColumn();
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
+        A->addColumn();
 
         updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -166,13 +168,16 @@ void MainWindow::removeRowFromMatrixA_MatrixOperations()
 {
     try
     {
-        A.removeRow();
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
+        A->removeRow();
 
         updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -180,13 +185,16 @@ void MainWindow::removeColumnFromMatrixA_MatrixOperations()
 {
     try
     {
-        A.removeColumn();
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
+        A->removeColumn();
 
         updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -194,18 +202,21 @@ void MainWindow::randomizeA_MatrixOperations()
 {
     try
     {
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+
         std::unique_ptr<bool> ok = std::make_unique<bool>();
         std::unique_ptr<RandomizationDialog> dialog = std::make_unique<RandomizationDialog>(this, ok.get());
         dialog->exec();
 
         if (*ok)
-            A.randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+            A->randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
 
         updateMatrixA_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -219,19 +230,23 @@ void MainWindow::createMatrixA_MatrixOperations()
 
         if (*ok)
         {
-            A.reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+            if (!A.get())
+                A = std::make_unique<Matrix>(dialog->getRowsNumber(), dialog->getColumnsNumber());
+            else
+                A->reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+
             updateMatrixA_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
 void MainWindow::setCellA_MatrixOperations(int rowIndex, int columnIndex)
 {
-   A[rowIndex][columnIndex] = ui->table_A_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
+    A->at(rowIndex, columnIndex) = ui->table_A_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
 }
 
 void MainWindow::loadMatrixB_MatrixOperations()
@@ -242,13 +257,13 @@ void MainWindow::loadMatrixB_MatrixOperations()
 
         if (!filepath.isEmpty())
         {
-            B = Matrix::readFromFile(filepath.toStdString());
+            B = std::make_unique<Matrix>(Matrix::readFromFile(filepath.toStdString()));
             updateMatrixB_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -256,14 +271,17 @@ void MainWindow::saveMatrixB_MatrixOperations()
 {
     try
     {
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
         QString filepath = QFileDialog::getSaveFileName(this);
 
         if (!filepath.isEmpty())
-            Matrix::writeToFile(B, filepath.toStdString());
+            Matrix::writeToFile(*B, filepath.toStdString());
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -271,13 +289,15 @@ void MainWindow::addRowToMatrixB_MatrixOperations()
 {
     try
     {
-        B.addRow();
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
 
+        B->addRow();
         updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -285,13 +305,15 @@ void MainWindow::addColumnToMatrixB_MatrixOperations()
 {
     try
     {
-        B.addColumn();
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
 
+        B->addColumn();
         updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -299,13 +321,15 @@ void MainWindow::removeRowFromMatrixB_MatrixOperations()
 {
     try
     {
-        B.removeRow();
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
 
+        B->removeRow();
         updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -313,13 +337,16 @@ void MainWindow::removeColumnFromMatrixB_MatrixOperations()
 {
     try
     {
-        B.removeColumn();
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
+        B->removeColumn();
 
         updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -327,19 +354,22 @@ void MainWindow::randomizeB_MatrixOperations()
 {
     try
     {
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
         std::unique_ptr<bool> ok = std::make_unique<bool>();
         std::unique_ptr<RandomizationDialog> dialog = std::make_unique<RandomizationDialog>(this, ok.get());
         dialog->exec();
 
         if (*ok)
         {
-            B.randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+            B->randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
             updateMatrixB_MatrixOperations();
         }
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
@@ -352,38 +382,406 @@ void MainWindow::createMatrixB_MatrixOperations()
         dialog->exec();
 
         if (*ok)
-            B.reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+        {
+            if (!B.get())
+                B = std::make_unique<Matrix>(dialog->getRowsNumber(), dialog->getColumnsNumber());
+            else
+                B->reset(dialog->getRowsNumber(), dialog->getColumnsNumber());
+        }
 
         updateMatrixB_MatrixOperations();
     }
     catch(const std::exception& ex)
     {
-        showError(ex.what());
+        helpers::showError(ex.what());
     }
 }
 
 void MainWindow::setCellB_MatrixOperations(int rowIndex, int columnIndex)
 {
-    B[rowIndex][columnIndex] = ui->table_B_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
+    B->at(rowIndex, columnIndex) = ui->table_B_matrix_operations->item(rowIndex, columnIndex)->text().toDouble();
 }
 
-void MainWindow::showError(const std::string& message)
+void MainWindow::saveMatrixC_MatrixOperations()
 {
-    QMessageBox messageBox;
-    messageBox.critical(this, "Error", QString::fromUtf8(message.c_str()));
-    messageBox.show();
+    try
+    {
+        if (!C.get())
+            throw std::runtime_error("Matrix Result does not exist");
+
+        QString filepath = QFileDialog::getSaveFileName(this);
+
+        if (!filepath.isEmpty())
+            Matrix::writeToFile(*C, filepath.toStdString());
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::addMatrices_MatrixOperations()
+{
+    try
+    {
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
+        C = std::make_unique<Matrix>((*A) + (*B));
+
+        updateMatrixC_MatrixOperations();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::subtractMatrices_MatrixOperations()
+{
+    try
+    {
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
+        C = std::make_unique<Matrix>((*A) - (*B));
+
+        updateMatrixC_MatrixOperations();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::multiplyMatrices_MatrixOperations()
+{
+    try
+    {
+        if (!A.get())
+            throw std::runtime_error("Matrix A does not exist");
+        if (!B.get())
+            throw std::runtime_error("Matrix B does not exist");
+
+        C = std::make_unique<Matrix>((*A) * (*B));
+
+        updateMatrixC_MatrixOperations();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::loadMatrixA_SLESolver()
+{
+    try
+    {
+        QString filepath = QFileDialog::getOpenFileName(this);
+
+        if (!filepath.isEmpty())
+        {
+            sle.setMatrixA(Matrix::readFromFile(filepath.toStdString()));
+            updateMatrixA_SLESolver();
+        }
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::saveMatrixA_SLESolver()
+{
+    try
+    {
+        QString filepath = QFileDialog::getSaveFileName(this);
+
+        if (!filepath.isEmpty())
+            Matrix::writeToFile(sle.getMatrixA(), filepath.toStdString());
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::addRowToMatrixA_SLESolver()
+{
+    try
+    {
+        sle.getMatrixA().addRow();
+
+        updateMatrixA_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::addColumnToMatrixA_SLESolver()
+{
+    try
+    {
+        sle.getMatrixA().addColumn();
+
+        updateMatrixA_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::removeRowFromMatrixA_SLESolver()
+{
+    try
+    {
+        sle.getMatrixA().removeRow();
+
+        updateMatrixA_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::removeColumnFromMatrixA_SLESolver()
+{
+    try
+    {
+        sle.getMatrixA().removeColumn();
+
+        updateMatrixA_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::randomizeA_SLESolver()
+{
+    try
+    {
+        std::unique_ptr<bool> ok = std::make_unique<bool>();
+        std::unique_ptr<RandomizationDialog> dialog = std::make_unique<RandomizationDialog>(this, ok.get());
+        dialog->exec();
+
+        if (*ok)
+            sle.getMatrixA().randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+
+        updateMatrixA_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::createMatrixA_SLESolver()
+{
+    try
+    {
+        std::unique_ptr<bool> ok = std::make_unique<bool>();
+        std::unique_ptr<SetMatrixSize> dialog = std::make_unique<SetMatrixSize>(this, ok.get());
+        dialog->exec();
+
+        if (*ok)
+        {
+            sle.setMatrixA(Matrix(dialog->getRowsNumber(), dialog->getColumnsNumber()));
+            updateMatrixA_SLESolver();
+        }
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::setCellA_SLESolver(int rowIndex, int columnIndex)
+{
+    sle.getMatrixA()[rowIndex][columnIndex] = ui->table_A_sle_solver->item(rowIndex, columnIndex)->text().toDouble();
+}
+
+void MainWindow::loadMatrixB_SLESolver()
+{
+    try
+    {
+        QString filepath = QFileDialog::getOpenFileName(this);
+
+        if (!filepath.isEmpty())
+        {
+            sle.setMatrixB(Matrix::readFromFile(filepath.toStdString()));
+            updateMatrixB_SLESolver();
+        }
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::saveMatrixB_SLESolver()
+{
+    try
+    {
+        QString filepath = QFileDialog::getSaveFileName(this);
+
+        if (!filepath.isEmpty())
+            Matrix::writeToFile(sle.getMatrixB(), filepath.toStdString());
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::addRowToMatrixB_SLESolver()
+{
+    try
+    {
+        sle.getMatrixB().addRow();
+
+        updateMatrixB_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::addColumnToMatrixB_SLESolver()
+{
+    try
+    {
+        sle.getMatrixB().addColumn();
+
+        updateMatrixB_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::removeRowFromMatrixB_SLESolver()
+{
+    try
+    {
+        sle.getMatrixB().removeRow();
+
+        updateMatrixB_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::removeColumnFromMatrixB_SLESolver()
+{
+    try
+    {
+        sle.getMatrixB().removeColumn();
+
+        updateMatrixB_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::randomizeB_SLESolver()
+{
+    try
+    {
+        std::unique_ptr<bool> ok = std::make_unique<bool>();
+        std::unique_ptr<RandomizationDialog> dialog = std::make_unique<RandomizationDialog>(this, ok.get());
+        dialog->exec();
+
+        if (*ok)
+        {
+            sle.getMatrixB().randomize(dialog->getLeftBorderValue(), dialog->getRightBorderValue());
+            updateMatrixB_SLESolver();
+        }
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::createMatrixB_SLESolver()
+{
+    try
+    {
+        std::unique_ptr<bool> ok = std::make_unique<bool>();
+        std::unique_ptr<SetMatrixSize> dialog = std::make_unique<SetMatrixSize>(this, ok.get());
+        dialog->exec();
+
+        if (*ok)
+            sle.setMatrixB(Matrix(dialog->getRowsNumber(), dialog->getColumnsNumber()));
+
+        updateMatrixB_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::setCellB_SLESolver(int rowIndex, int columnIndex)
+{
+    sle.getMatrixB()[rowIndex][columnIndex] = ui->table_B_sle_solver->item(rowIndex, columnIndex)->text().toDouble();
+}
+
+void MainWindow::saveVectorX_SLESolver()
+{
+    try
+    {
+        QString filepath = QFileDialog::getSaveFileName(this);
+
+        if (!filepath.isEmpty())
+            Vector::writeToFile(sle.getVectorX(), filepath.toStdString());
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
+}
+
+void MainWindow::solveVectorX_SLESolver()
+{
+    try
+    {
+        sle.solve();
+
+        updateVectorX_SLESolver();
+    }
+    catch(const std::exception& ex)
+    {
+        helpers::showError(ex.what());
+    }
 }
 
 void MainWindow::updateMatrixA_MatrixOperations()
 {
-    ui->table_A_matrix_operations->setRowCount(A.getNumRows());
-    ui->table_A_matrix_operations->setColumnCount(A.getNumColumns());
+    ui->table_A_matrix_operations->setRowCount(A->getNumRows());
+    ui->table_A_matrix_operations->setColumnCount(A->getNumColumns());
 
-    for (size_t i = 0; i < A.getNumRows(); ++i)
+    for (size_t i = 0; i < A->getNumRows(); ++i)
     {
-        for (size_t j = 0; j < A.getNumColumns(); ++j)
+        for (size_t j = 0; j < A->getNumColumns(); ++j)
         {
-            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(A[i][j]));
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg((A->at(i, j))));
             ui->table_A_matrix_operations->setItem(i, j, item);
         }
     }
@@ -391,14 +789,14 @@ void MainWindow::updateMatrixA_MatrixOperations()
 
 void MainWindow::updateMatrixB_MatrixOperations()
 {
-    ui->table_B_matrix_operations->setRowCount(B.getNumRows());
-    ui->table_B_matrix_operations->setColumnCount(B.getNumColumns());
+    ui->table_B_matrix_operations->setRowCount(B->getNumRows());
+    ui->table_B_matrix_operations->setColumnCount(B->getNumColumns());
 
-    for (size_t i = 0; i < B.getNumRows(); ++i)
+    for (size_t i = 0; i < B->getNumRows(); ++i)
     {
-        for (size_t j = 0; j < B.getNumColumns(); ++j)
+        for (size_t j = 0; j < B->getNumColumns(); ++j)
         {
-            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(B[i][j]));
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(B->at(i, j)));
             ui->table_B_matrix_operations->setItem(i, j, item);
         }
     }
@@ -406,30 +804,17 @@ void MainWindow::updateMatrixB_MatrixOperations()
 
 void MainWindow::updateMatrixC_MatrixOperations()
 {
-    ui->table_C_matrix_operations->setRowCount(C.getNumRows());
-    ui->table_C_matrix_operations->setColumnCount(C.getNumColumns());
+    ui->table_C_matrix_operations->setRowCount(C->getNumRows());
+    ui->table_C_matrix_operations->setColumnCount(C->getNumColumns());
 
-    for (size_t i = 0; i < C.getNumRows(); ++i)
+    for (size_t i = 0; i < C->getNumRows(); ++i)
     {
-        for (size_t j = 0; j < C.getNumColumns(); ++j)
+        for (size_t j = 0; j < C->getNumColumns(); ++j)
         {
-            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(C[i][j]));
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(C->at(i, j)));
             ui->table_C_matrix_operations->setItem(i, j, item);
         }
     }
-}
-
-void MainWindow::createMenubarForMatrixOperations()
-{
-    createMatrixAMenu_MatrixOperations();
-//    createMatrixAToolset(ui->push_button_sle_solver_matrix_A);
-//    createMatrixBToolset(ui->tab_matrix_operations);
-    //createMatrixResultToolset(ui->tab_matrix_operations);
-}
-
-void MainWindow::createMenubarForSLESolver()
-{
-
 }
 
 void MainWindow::createMatrixAMenu_MatrixOperations()
@@ -457,71 +842,210 @@ void MainWindow::createMatrixAMenu_MatrixOperations()
     connect(actions["remove_column"], &QAction::triggered, this, &MainWindow::removeColumnFromMatrixA_MatrixOperations);
     connect(actions["randomize"], &QAction::triggered, this, &MainWindow::randomizeA_MatrixOperations);
     connect(actions["create_matrix"], &QAction::triggered, this, &MainWindow::createMatrixA_MatrixOperations);
+    connect(ui->table_A_matrix_operations, &QTableWidget::cellChanged, this, &MainWindow::setCellA_MatrixOperations);
 
     ui->push_button_matrix_A_matrix_operations->setMenu(matrixToolset);
 }
 
 void MainWindow::createMatrixBMenu_MatrixOperations()
 {
-//    QFont font;
-//    font.setPointSize(11);
+    auto actions = createMatrixToolset();
 
-//    QAction* action_load_B = new QAction();
-//    action_load_B->setObjectName("action_load_B");
-//    action_load_B->setText(QCoreApplication::translate("MainWindow", "Load matrix", nullptr));
-//    action_load_B->setFont(font);
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_B_matrix_operations");
+    matrixToolset->addAction(actions["load"]);
+    matrixToolset->addAction(actions["save"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["add_new_row"]);
+    matrixToolset->addAction(actions["add_new_column"]);
+    matrixToolset->addAction(actions["remove_row"]);
+    matrixToolset->addAction(actions["remove_column"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["randomize"]);
+    matrixToolset->addAction(actions["create_matrix"]);
 
-//    QAction* action_save_B = new QAction();
-//    action_save_B->setObjectName("action_save_B");
-//    action_save_B->setText(QCoreApplication::translate("MainWindow", "Save matrix", nullptr));
-//    action_save_B->setFont(font);
+    connect(actions["load"], &QAction::triggered, this, &MainWindow::loadMatrixB_MatrixOperations);
+    connect(actions["save"], &QAction::triggered, this, &MainWindow::saveMatrixB_MatrixOperations);
+    connect(actions["add_new_row"], &QAction::triggered, this, &MainWindow::addRowToMatrixB_MatrixOperations);
+    connect(actions["add_new_column"], &QAction::triggered, this, &MainWindow::addColumnToMatrixB_MatrixOperations);
+    connect(actions["remove_row"], &QAction::triggered, this, &MainWindow::removeRowFromMatrixB_MatrixOperations);
+    connect(actions["remove_column"], &QAction::triggered, this, &MainWindow::removeColumnFromMatrixB_MatrixOperations);
+    connect(actions["randomize"], &QAction::triggered, this, &MainWindow::randomizeB_MatrixOperations);
+    connect(actions["create_matrix"], &QAction::triggered, this, &MainWindow::createMatrixB_MatrixOperations);
+    connect(ui->table_B_matrix_operations, &QTableWidget::cellChanged, this, &MainWindow::setCellB_MatrixOperations);
 
-//    QAction* action_add_new_row_to_B = new QAction();
-//    action_add_new_row_to_B->setObjectName("action_add_new_row_to_B");
-//    action_add_new_row_to_B->setText(QCoreApplication::translate("MainWindow", "Add new row", nullptr));
-//    action_add_new_row_to_B->setFont(font);
-
-//    QAction* action_add_new_column_to_B = new QAction();
-//    action_add_new_column_to_B->setObjectName("action_add_new_column_to_B");
-//    action_add_new_column_to_B->setText(QCoreApplication::translate("MainWindow", "Add new column", nullptr));
-//    action_add_new_column_to_B->setFont(font);
-
-//    QAction* action_remove_row_from_B = new QAction();
-//    action_remove_row_from_B->setObjectName("action_remove_row_from_B");
-//    action_remove_row_from_B->setText(QCoreApplication::translate("MainWindow", "Remove row", nullptr));
-//    action_remove_row_from_B->setFont(font);
-
-//    QAction* action_remove_column_from_B = new QAction();
-//    action_remove_column_from_B->setObjectName("action_remove_column_from_B");
-//    action_remove_column_from_B->setText(QCoreApplication::translate("MainWindow", "Remove column", nullptr));
-//    action_remove_column_from_B->setFont(font);
-
-//    QAction* action_randomize_B = new QAction();
-//    action_randomize_B->setObjectName("action_randomize_B");
-//    action_randomize_B->setText(QCoreApplication::translate("MainWindow", "Randomize...", nullptr));
-//    action_randomize_B->setFont(font);
-
-//    QAction* action_create_matrix_B = new QAction();
-//    action_create_matrix_B->setObjectName("action_create_matrix_B");
-//    action_create_matrix_B->setText(QCoreApplication::translate("MainWindow", "Create matrix...", nullptr));
-//    action_create_matrix_B->setFont(font);
-
-//    QMenu* toolbar_matrix_operations_matrix_B = new QMenu();
-//    toolbar_matrix_operations_matrix_B->addAction(action_load_B);
-//    toolbar_matrix_operations_matrix_B->addAction(action_save_B);
-//    toolbar_matrix_operations_matrix_B->addSeparator();
-//    toolbar_matrix_operations_matrix_B->addAction(action_add_new_row_to_B);
-//    toolbar_matrix_operations_matrix_B->addAction(action_add_new_column_to_B);
-//    toolbar_matrix_operations_matrix_B->addAction(action_remove_row_from_B);
-//    toolbar_matrix_operations_matrix_B->addAction(action_remove_column_from_B);
-//    toolbar_matrix_operations_matrix_B->addSeparator();
-//    toolbar_matrix_operations_matrix_B->addAction(action_randomize_B);
-//    toolbar_matrix_operations_matrix_B->addAction(action_create_matrix_B);
-
-    //    ui->push_button_matrix_B_matrix_operations->setMenu(toolbar_matrix_operations_matrix_B);
+    ui->push_button_matrix_B_matrix_operations->setMenu(matrixToolset);
 }
 
 void MainWindow::createMatrixCMenu_MatrixOperations()
 {
+    QFont font;
+    font.setPointSize(11);
 
+    QAction* action_save = new QAction();
+    action_save->setObjectName("action_save");
+    action_save->setText(QCoreApplication::translate("MainWindow", "Save matrix", nullptr));
+    action_save->setFont(font);
+
+    QAction* action_add = new QAction();
+    action_add->setObjectName("action_add");
+    action_add->setText(QCoreApplication::translate("MainWindow", "Add matrices", nullptr));
+    action_add->setFont(font);
+
+    QAction* action_subtract = new QAction();
+    action_subtract->setObjectName("action_subtract");
+    action_subtract->setText(QCoreApplication::translate("MainWindow", "Subtract matrices", nullptr));
+    action_subtract->setFont(font);
+
+    QAction* action_multiply = new QAction();
+    action_multiply->setObjectName("action_multiply");
+    action_multiply->setText(QCoreApplication::translate("MainWindow", "Multiply matrices", nullptr));
+    action_multiply->setFont(font);
+
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_C_matrix_operations");
+    matrixToolset->addAction(action_save);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(action_add);
+    matrixToolset->addAction(action_subtract);
+    matrixToolset->addAction(action_multiply);
+
+    connect(action_save, &QAction::triggered, this, &MainWindow::saveMatrixC_MatrixOperations);
+    connect(action_add, &QAction::triggered, this, &MainWindow::addMatrices_MatrixOperations);
+    connect(action_subtract, &QAction::triggered, this, &MainWindow::subtractMatrices_MatrixOperations);
+    connect(action_multiply, &QAction::triggered, this, &MainWindow::multiplyMatrices_MatrixOperations);
+
+    ui->push_button_matrix_C_matrix_operations->setMenu(matrixToolset);
+
+    ui->table_C_matrix_operations->setEditTriggers(QTableWidget::NoEditTriggers);
+}
+
+void MainWindow::updateMatrixA_SLESolver()
+{
+    ui->table_A_sle_solver->setRowCount(sle.getMatrixA().getNumRows());
+    ui->table_A_sle_solver->setColumnCount(sle.getMatrixA().getNumColumns());
+
+    for (size_t i = 0; i < sle.getMatrixA().getNumRows(); ++i)
+    {
+        for (size_t j = 0; j < sle.getMatrixA().getNumColumns(); ++j)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getMatrixA()[i][j]));
+            ui->table_A_sle_solver->setItem(i, j, item);
+        }
+    }
+}
+
+void MainWindow::updateMatrixB_SLESolver()
+{
+    ui->table_B_sle_solver->setRowCount(sle.getMatrixB().getNumRows());
+    ui->table_B_sle_solver->setColumnCount(sle.getMatrixB().getNumColumns());
+
+    for (size_t i = 0; i < sle.getMatrixB().getNumRows(); ++i)
+    {
+        for (size_t j = 0; j < sle.getMatrixB().getNumColumns(); ++j)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getMatrixB()[i][j]));
+            ui->table_B_sle_solver->setItem(i, j, item);
+        }
+    }
+}
+
+void MainWindow::updateVectorX_SLESolver()
+{
+    ui->table_Solution_sle_solver->setRowCount(sle.getVectorX().getSize());
+    ui->table_Solution_sle_solver->setColumnCount(1);
+
+    for (size_t i = 0; i < sle.getVectorX().getSize(); ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getVectorX()[i]));
+        ui->table_Solution_sle_solver->setItem(i, 0, item);
+    }
+}
+
+void MainWindow::createMatrixAMenu_SLESolver()
+{
+    auto actions = createMatrixToolset();
+
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_A_sle_solver");
+    matrixToolset->addAction(actions["load"]);
+    matrixToolset->addAction(actions["save"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["add_new_row"]);
+    matrixToolset->addAction(actions["add_new_column"]);
+    matrixToolset->addAction(actions["remove_row"]);
+    matrixToolset->addAction(actions["remove_column"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["randomize"]);
+    matrixToolset->addAction(actions["create_matrix"]);
+
+    connect(actions["load"], &QAction::triggered, this, &MainWindow::loadMatrixA_SLESolver);
+    connect(actions["save"], &QAction::triggered, this, &MainWindow::saveMatrixA_SLESolver);
+    connect(actions["add_new_row"], &QAction::triggered, this, &MainWindow::addRowToMatrixA_SLESolver);
+    connect(actions["add_new_column"], &QAction::triggered, this, &MainWindow::addColumnToMatrixA_SLESolver);
+    connect(actions["remove_row"], &QAction::triggered, this, &MainWindow::removeRowFromMatrixA_SLESolver);
+    connect(actions["remove_column"], &QAction::triggered, this, &MainWindow::removeColumnFromMatrixA_SLESolver);
+    connect(actions["randomize"], &QAction::triggered, this, &MainWindow::randomizeA_SLESolver);
+    connect(actions["create_matrix"], &QAction::triggered, this, &MainWindow::createMatrixA_SLESolver);
+    connect(ui->table_A_sle_solver, &QTableWidget::cellChanged, this, &MainWindow::setCellA_SLESolver);
+
+    ui->push_button_matrix_A_sle_solver->setMenu(matrixToolset);
+}
+
+void MainWindow::createMatrixBMenu_SLESolver()
+{
+    auto actions = createMatrixToolset();
+
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_B_sle_solver");
+    matrixToolset->addAction(actions["load"]);
+    matrixToolset->addAction(actions["save"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["add_new_row"]);
+    matrixToolset->addAction(actions["add_new_column"]);
+    matrixToolset->addAction(actions["remove_row"]);
+    matrixToolset->addAction(actions["remove_column"]);
+    matrixToolset->addSeparator();
+    matrixToolset->addAction(actions["randomize"]);
+    matrixToolset->addAction(actions["create_matrix"]);
+
+    connect(actions["load"], &QAction::triggered, this, &MainWindow::loadMatrixB_SLESolver);
+    connect(actions["save"], &QAction::triggered, this, &MainWindow::saveMatrixB_SLESolver);
+    connect(actions["add_new_row"], &QAction::triggered, this, &MainWindow::addRowToMatrixB_SLESolver);
+    connect(actions["add_new_column"], &QAction::triggered, this, &MainWindow::addColumnToMatrixB_SLESolver);
+    connect(actions["remove_row"], &QAction::triggered, this, &MainWindow::removeRowFromMatrixB_SLESolver);
+    connect(actions["remove_column"], &QAction::triggered, this, &MainWindow::removeColumnFromMatrixB_SLESolver);
+    connect(actions["randomize"], &QAction::triggered, this, &MainWindow::randomizeB_SLESolver);
+    connect(actions["create_matrix"], &QAction::triggered, this, &MainWindow::createMatrixB_SLESolver);
+    connect(ui->table_B_sle_solver, &QTableWidget::cellChanged, this, &MainWindow::setCellB_SLESolver);
+
+    ui->push_button_matrix_B_sle_solver->setMenu(matrixToolset);
+}
+
+void MainWindow::createVectorXMenu_SLESolver()
+{
+    QFont font;
+    font.setPointSize(11);
+
+    QAction* action_solve = new QAction();
+    action_solve->setObjectName("action_solve");
+    action_solve->setText(QCoreApplication::translate("MainWindow", "Solve", nullptr));
+    action_solve->setFont(font);
+
+    QAction* action_save = new QAction();
+    action_save->setObjectName("action_save");
+    action_save->setText(QCoreApplication::translate("MainWindow", "Save vector", nullptr));
+    action_save->setFont(font);
+
+    QMenu* matrixToolset = new QMenu();
+    matrixToolset->setObjectName("menu_matrix_B_sle_solver");
+    matrixToolset->addAction(action_solve);
+    matrixToolset->addAction(action_save);
+
+    connect(action_solve, &QAction::triggered, this, &MainWindow::solveVectorX_SLESolver);
+    connect(action_save, &QAction::triggered, this, &MainWindow::saveVectorX_SLESolver);
+
+    ui->push_button_solution_sle_solver->setMenu(matrixToolset);
+
+    ui->table_Solution_sle_solver->setEditTriggers(QTableWidget::NoEditTriggers);
 }

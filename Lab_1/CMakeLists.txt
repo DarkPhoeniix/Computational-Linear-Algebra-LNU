@@ -26,6 +26,8 @@ set(PROJECT_SOURCES
         randomization.cpp
         set_matrix_size.h
         set_matrix_size.cpp
+        helpers.h
+        helpers.cpp
         mainwindow.ui
 )
 

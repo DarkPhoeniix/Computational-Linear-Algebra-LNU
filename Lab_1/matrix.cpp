@@ -75,14 +75,62 @@ Matrix operator*(const Matrix& lhs, const Matrix& rhs)
     return result;
 }
 
+std::ostream& operator<<(std::ostream& output, const Matrix& matrix)
+{
+    for (const auto& row : matrix.matrixValues)
+    {
+        for (size_t index = 0; index < row.getSize(); ++index)
+        {
+            output << row[index];
+            if (index != (row.getSize() - 1))
+                output << ' ';
+        }
+        output << std::endl;
+    }
+
+    return output;
+}
+
+std::istream& operator>>(std::istream& input, Matrix& matrix)
+{
+    std::string line;
+    while(std::getline(input, line))
+        if (!line.empty())
+            matrix.matrixValues.push_back(readMatrixRow(line));
+
+    return input;
+}
+
 Vector& Matrix::operator[](size_t index)
 {
+    if (index >= matrixValues.size())
+        throw std::out_of_range("Matrix index is out of range");
+
     return matrixValues[index];
 }
 
 Vector Matrix::operator[](size_t index) const
 {
+    if (index >= matrixValues.size())
+        throw std::out_of_range("Matrix index is out of range");
+
     return matrixValues[index];
+}
+
+double& Matrix::at(size_t rowIndex, size_t columnIndex)
+{
+    if (rowIndex >= matrixValues.size())
+        throw std::out_of_range("Matrix index is out of range");
+
+    return matrixValues[rowIndex][columnIndex];
+}
+
+double Matrix::at(size_t rowIndex, size_t columnIndex) const
+{
+    if (rowIndex >= matrixValues.size())
+        throw std::out_of_range("Matrix index is out of range");
+
+    return matrixValues[rowIndex][columnIndex];
 }
 
 size_t Matrix::getNumRows() const
@@ -161,11 +209,11 @@ Matrix Matrix::readFromFile(const std::string& filename)
     Matrix matrix;
 
     if (!std::filesystem::exists(filename))
-        throw std::invalid_argument("File doesn't exist");
+        throw std::invalid_argument("Failed to open the file: " + filename);
 
     std::ifstream file(filename);
     if (!file.is_open())
-        throw std::invalid_argument("Failed to open the file");
+        throw std::invalid_argument("Failed to open the file: " + filename);
 
     std::string line;
     while(std::getline(file, line))
@@ -179,7 +227,7 @@ void Matrix::writeToFile(const Matrix &matrix, const std::string& filename)
 {
     std::ofstream file(filename, std::ios_base::app);
     if (!file.is_open())
-        throw std::invalid_argument("Failed to create a file");
+        throw std::invalid_argument("Failed to create a file: " + filename);
 
     for (const auto& row : matrix.matrixValues)
     {

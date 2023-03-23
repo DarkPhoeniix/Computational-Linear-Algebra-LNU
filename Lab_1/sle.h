@@ -4,6 +4,8 @@
 #include "matrix.h"
 #include "vector.h"
 
+#include <memory>
+
 class SLE
 {
 public:
@@ -24,9 +26,9 @@ public:
     void solve();
 
 private:
-    Matrix A;
-    Matrix B;
-    Vector x;
+    std::unique_ptr<Matrix> A;
+    std::unique_ptr<Matrix> B;
+    std::unique_ptr<Vector> x;
 };
 
 #endif // SLE_H
