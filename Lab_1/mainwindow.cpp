@@ -4,6 +4,7 @@
 #include "set_matrix_size.h"
 #include "helpers.h"
 
+#include <QInputDialog>
 #include <QPushButton>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -137,9 +138,14 @@ void MainWindow::addRowToMatrixA_MatrixOperations()
         if (!A.get())
             throw std::runtime_error("Matrix A does not exist");
 
-        A->addRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, A->getNumRows(), 1, ok.get());
 
-        updateMatrixA_MatrixOperations();
+        if (*ok)
+        {
+            A->addRow(index - 1);
+            updateMatrixA_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -154,9 +160,14 @@ void MainWindow::addColumnToMatrixA_MatrixOperations()
         if (!A.get())
             throw std::runtime_error("Matrix A does not exist");
 
-        A->addColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, A->getNumColumns(), 1, ok.get());
 
-        updateMatrixA_MatrixOperations();
+        if (*ok)
+        {
+            A->addColumn(index - 1);
+            updateMatrixA_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -171,9 +182,14 @@ void MainWindow::removeRowFromMatrixA_MatrixOperations()
         if (!A.get())
             throw std::runtime_error("Matrix A does not exist");
 
-        A->removeRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, A->getNumRows(), 1, ok.get());
 
-        updateMatrixA_MatrixOperations();
+        if (*ok)
+        {
+            A->removeRow(index - 1);
+            updateMatrixA_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -188,9 +204,14 @@ void MainWindow::removeColumnFromMatrixA_MatrixOperations()
         if (!A.get())
             throw std::runtime_error("Matrix A does not exist");
 
-        A->removeColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, A->getNumColumns(), 1, ok.get());
 
-        updateMatrixA_MatrixOperations();
+        if (*ok)
+        {
+            A->removeColumn(index - 1);
+            updateMatrixA_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -292,8 +313,14 @@ void MainWindow::addRowToMatrixB_MatrixOperations()
         if (!B.get())
             throw std::runtime_error("Matrix B does not exist");
 
-        B->addRow();
-        updateMatrixB_MatrixOperations();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, B->getNumRows(), 1, ok.get());
+
+        if (*ok)
+        {
+            B->addRow(index - 1);
+            updateMatrixB_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -308,8 +335,14 @@ void MainWindow::addColumnToMatrixB_MatrixOperations()
         if (!B.get())
             throw std::runtime_error("Matrix B does not exist");
 
-        B->addColumn();
-        updateMatrixB_MatrixOperations();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, B->getNumColumns(), 1, ok.get());
+
+        if (*ok)
+        {
+            B->addColumn(index - 1);
+            updateMatrixB_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -324,8 +357,14 @@ void MainWindow::removeRowFromMatrixB_MatrixOperations()
         if (!B.get())
             throw std::runtime_error("Matrix B does not exist");
 
-        B->removeRow();
-        updateMatrixB_MatrixOperations();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, B->getNumRows(), 1, ok.get());
+
+        if (*ok)
+        {
+            B->removeRow(index - 1);
+            updateMatrixB_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -340,9 +379,14 @@ void MainWindow::removeColumnFromMatrixB_MatrixOperations()
         if (!B.get())
             throw std::runtime_error("Matrix B does not exist");
 
-        B->removeColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, B->getNumColumns(), 1, ok.get());
 
-        updateMatrixB_MatrixOperations();
+        if (*ok)
+        {
+            B->removeColumn(index - 1);
+            updateMatrixB_MatrixOperations();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -514,9 +558,14 @@ void MainWindow::addRowToMatrixA_SLESolver()
 {
     try
     {
-        sle.getMatrixA().addRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixA().getNumRows(), 1, ok.get());
 
-        updateMatrixA_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixA().addRow(index - 1);
+            updateMatrixA_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -528,9 +577,14 @@ void MainWindow::addColumnToMatrixA_SLESolver()
 {
     try
     {
-        sle.getMatrixA().addColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixA().getNumColumns(), 1, ok.get());
 
-        updateMatrixA_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixA().addColumn(index - 1);
+            updateMatrixA_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -542,9 +596,14 @@ void MainWindow::removeRowFromMatrixA_SLESolver()
 {
     try
     {
-        sle.getMatrixA().removeRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixA().getNumRows(), 1, ok.get());
 
-        updateMatrixA_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixA().removeRow(index - 1);
+            updateMatrixA_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -556,9 +615,14 @@ void MainWindow::removeColumnFromMatrixA_SLESolver()
 {
     try
     {
-        sle.getMatrixA().removeColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixA().getNumColumns(), 1, ok.get());
 
-        updateMatrixA_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixA().removeColumn(index - 1);
+            updateMatrixA_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -647,9 +711,14 @@ void MainWindow::addRowToMatrixB_SLESolver()
 {
     try
     {
-        sle.getMatrixB().addRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixB().getNumRows(), 1, ok.get());
 
-        updateMatrixB_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixB().addRow(index - 1);
+            updateMatrixB_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -661,9 +730,14 @@ void MainWindow::addColumnToMatrixB_SLESolver()
 {
     try
     {
-        sle.getMatrixB().addColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixB().getNumColumns(), 1, ok.get());
 
-        updateMatrixB_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixB().addColumn(index - 1);
+            updateMatrixB_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -675,9 +749,14 @@ void MainWindow::removeRowFromMatrixB_SLESolver()
 {
     try
     {
-        sle.getMatrixB().removeRow();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixB().getNumRows(), 1, ok.get());
 
-        updateMatrixB_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixB().removeRow(index - 1);
+            updateMatrixB_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -689,9 +768,14 @@ void MainWindow::removeColumnFromMatrixB_SLESolver()
 {
     try
     {
-        sle.getMatrixB().removeColumn();
+        auto ok = std::make_unique<bool>(false);
+        size_t index = QInputDialog::getInt(this, "Choose position", "Input the index where to insert the new row:", 1, 1, sle.getMatrixB().getNumColumns(), 1, ok.get());
 
-        updateMatrixB_SLESolver();
+        if (*ok)
+        {
+            sle.getMatrixB().removeColumn(index - 1);
+            updateMatrixB_SLESolver();
+        }
     }
     catch(const std::exception& ex)
     {
@@ -952,10 +1036,10 @@ void MainWindow::updateMatrixB_SLESolver()
 
 void MainWindow::updateVectorX_SLESolver()
 {
-    ui->table_Solution_sle_solver->setRowCount(sle.getVectorX().getSize());
+    ui->table_Solution_sle_solver->setRowCount(sle.getVectorX().size());
     ui->table_Solution_sle_solver->setColumnCount(1);
 
-    for (size_t i = 0; i < sle.getVectorX().getSize(); ++i)
+    for (size_t i = 0; i < sle.getVectorX().size(); ++i)
     {
         QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(sle.getVectorX()[i]));
         ui->table_Solution_sle_solver->setItem(i, 0, item);

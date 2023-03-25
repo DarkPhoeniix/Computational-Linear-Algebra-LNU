@@ -11,17 +11,17 @@
 
 namespace
 {
-    Vector readMatrixRow(const std::string& line)
-    {
-        Vector values;
+Vector readMatrixRow(const std::string& line)
+{
+    Vector values;
 
-        std::istringstream ss(line);
-        double num = 0.0;
-        while (ss >> num)
-            values.addValue(num);
+    std::istringstream ss(line);
+    double num = 0.0;
+    while (ss >> num)
+        values.pushBack(num);
 
-        return values;
-    }
+    return values;
+}
 }
 
 Matrix::Matrix(int numRows, int numCols)
@@ -79,10 +79,10 @@ std::ostream& operator<<(std::ostream& output, const Matrix& matrix)
 {
     for (const auto& row : matrix.matrixValues)
     {
-        for (size_t index = 0; index < row.getSize(); ++index)
+        for (size_t index = 0; index < row.size(); ++index)
         {
             output << row[index];
-            if (index != (row.getSize() - 1))
+            if (index != (row.size() - 1))
                 output << ' ';
         }
         output << std::endl;
@@ -140,30 +140,40 @@ size_t Matrix::getNumRows() const
 
 size_t Matrix::getNumColumns() const
 {
-    return matrixValues.front().getSize();
+    return matrixValues.front().size();
 }
 
-void Matrix::addRow()
+void Matrix::addRow(size_t index, double value /*= 0.0*/)
 {
-    size_t colsNumber = this->matrixValues.front().getSize();
-    this->matrixValues.push_back(Vector(colsNumber, 0.0));
+    checkRowIndex(index);
+
+    size_t colsNumber = this->matrixValues.front().size();
+    auto it = matrixValues.cbegin()+index;
+    this->matrixValues.insert(it, Vector(colsNumber, value));
 }
 
-void Matrix::addColumn()
+void Matrix::addColumn(size_t index, double value /*= 0.0*/)
 {
+    checkColumnIndex(index);
+
     for (auto& row : this->matrixValues)
-        row.addValue(0.0);
+        row.insert(index, value);
 }
 
-void Matrix::removeRow()
+void Matrix::removeRow(size_t index)
 {
-    matrixValues.erase(matrixValues.end() - 1);
+    checkRowIndex(index);
+
+    auto it = matrixValues.cbegin() + index;
+    matrixValues.erase(it);
 }
 
-void Matrix::removeColumn()
+void Matrix::removeColumn(size_t index)
 {
+    checkColumnIndex(index);
+
     for (auto& row : matrixValues)
-        row.removeValue();
+        row.remove(index);
 }
 
 void Matrix::reset(int numRows, int numColumns)
@@ -231,10 +241,10 @@ void Matrix::writeToFile(const Matrix &matrix, const std::string& filename)
 
     for (const auto& row : matrix.matrixValues)
     {
-        for (size_t index = 0; index < row.getSize(); ++index)
+        for (size_t index = 0; index < row.size(); ++index)
         {
             file << row[index];
-            if (index != (row.getSize() - 1))
+            if (index != (row.size() - 1))
                 file << ' ';
         }
         file << std::endl;
@@ -254,5 +264,5 @@ bool Matrix::checkRowIndex(int index) const
 
 bool Matrix::checkColumnIndex(int index) const
 {
-    return (index >= 0) && (index < this->matrixValues.front().getSize());
+    return (index >= 0) && (index < this->matrixValues.front().size());
 }

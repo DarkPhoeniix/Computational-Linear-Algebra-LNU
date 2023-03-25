@@ -1,5 +1,7 @@
 #include "sle.h"
 
+#include <algorithm>
+#include <numeric>
 #include <fstream>
 
 namespace
@@ -51,32 +53,66 @@ Matrix getMatrixT(const Matrix& matrix, int k)
     return T;
 }
 
-void getEchelonForm(Matrix& A, Matrix& B, std::ostream* output = nullptr)
+Matrix getEchelonForm(const Matrix& matrix, std::ostream* output = nullptr)
 {
-    for (int k = 0; k < A.getNumRows(); ++k)
+    Matrix echelonForm(matrix.getNumRows(), matrix.getNumColumns());
+    Matrix copy = matrix;
+    Vector m(copy.getNumRows());
+
+    std::vector<size_t> rowIndices(matrix.getNumRows());
+    std::iota(rowIndices.begin(), rowIndices.end(), 0);
+    std::vector<size_t> columnIndices(matrix.getNumColumns());
+    std::iota(columnIndices.begin(), columnIndices.end(), 0);
+
+    for (int k = 0; k < matrix.getNumRows(); ++k)
     {
-        Matrix T = getMatrixT(A, k);
+        size_t maxRowIndex = 0,
+                maxColumnIndex = 0;
+        for (auto rowIndex : rowIndices)
+        {
+            for (auto columnIndex : columnIndices)
+            {
+                if (copy[rowIndex][columnIndex] > copy[maxRowIndex][maxColumnIndex])
+                {
+                    maxRowIndex = rowIndex;
+                    maxColumnIndex = columnIndex;
+                }
+            }
+        }
+
+        for (auto rowIndex : rowIndices)
+            if (i != maxRowIndex)
+                m[i] = copy[i][maxColumnIndex] / copy[maxRowIndex][maxColumnIndex];
+
+        auto rowToEraseIt = std::find(rowIndices.cbegin(), rowIndices.cend(), maxRowIndex);
+        auto columnToEraseIt = std::find(columnIndices.cbegin(), columnIndices.cend(), maxColumnIndex);
+        rowIndices.erase(rowToEraseIt);
+        columnIndices.erase(columnToEraseIt);
+
+        for (auto rowIndex : rowIndices)
+            for (auto columnIndex : columnIndices)
+                copy[rowIndex][columnIndex] -= copy[maxRowIndex][columnIndex] * m[maxRowIndex];
+
+        echelonForm[k] = copy[maxRowIndex];
 
         if (output)
         {
             *output << "Iteration " << k + 1 << ":\n";
-            *output << "T(" << k + 1 << ") = \n" << T;
-        }
-
-        A = T * A;
-        B = T * B;
-
-        if (output)
-        {
-            *output << "A(" << k + 1 << ") = \n" << A;
-            *output << "B(" << k + 1 << ") = \n" << B << std::endl;
+            *output << "M(" << k + 1 << ") = \n" << copy << std::endl;
         }
     }
+
+    if (output)
+    {
+        *output << "A(" << matrix.getNumRows() << ") = \n" << copy << std::endl;
+    }
+
+    return echelonForm;
 }
 
 Matrix getMatrixV(const Matrix& matrix, int k)
 {
-    Matrix V(matrix.getNumRows(), matrix.getNumColumns());
+    Matrix V = matrix;
 
     for (int i = 0; i < V.getNumRows(); ++i)
         V[i][i] = 1;
@@ -89,32 +125,28 @@ Matrix getMatrixV(const Matrix& matrix, int k)
     return V;
 }
 
-Vector getSolution(Matrix& U, Matrix& C, std::ostream* output = nullptr)
+Vector getSolution(const Matrix& matrix, std::ostream* output = nullptr)
 {
-    Vector soultion(C.getNumRows());
+    Vector soultion(matrix.getNumRows());
+    Matrix copy = matrix;
 
-    for (int k = (U.getNumRows() - 1); k >= 0; --k)
+    for (int k = (matrix.getNumRows() - 1); k >= 0; --k)
     {
-        Matrix V = getMatrixV(U, k);
+        Matrix V = getMatrixV(copy, k);
+
+        copy = V * copy;
 
         if (output)
         {
-            *output << "Iteration " << U.getNumRows() - k << ":\n";
+            *output << "Iteration " << matrix.getNumRows() - k << ":\n";
             *output << "V(" << k + 1 << ") = \n" << V;
-        }
-
-        U = V * U;
-        C = V * C;
-
-        if (output)
-        {
-            *output << "U(" << k + 1 << ") = \n" << U;
-            *output << "C(" << k + 1 << ") = \n" << C << std::endl;
+//            *output << "U(" << k + 1 << ") = \n" << U;
+//            *output << "C(" << k + 1 << ") = \n" << C << std::endl;
         }
     }
 
-    for (int i = 0; i < C.getNumRows(); ++i)
-        soultion[i] = C[i][0];
+    for (int i = 0; i < matrix.getNumRows(); ++i)
+        soultion[i] = matrix[i][matrix.getNumColumns() - 1];
 
     return soultion;
 }
@@ -206,19 +238,24 @@ void SLE::solve()
     if (!sleHasSolution(*A))
         throw std::runtime_error("SLE has no solution");
 
-    Matrix U(*A);
-    Matrix C(*B);
+    Matrix M(A->getNumRows(), A->getNumColumns() + 1);
+    for (size_t rowIndex = 0; rowIndex < A->getNumRows(); ++rowIndex)
+    {
+        for (size_t columnIndex = 0; columnIndex < (A->getNumColumns() + 1); ++columnIndex)
+            M[rowIndex][columnIndex] = (*A)[rowIndex][columnIndex];
+        M[rowIndex][A->getNumColumns()] = (*B)[rowIndex][0];
+    }
 
-    getEchelonForm(U, C, &output);
-    if (sleHasInfiniteSolutions(U))
-        throw std::runtime_error("SLE has infinitely many solutions");
+    Matrix echelonMatrix = getEchelonForm(M, &output);
+//    if (sleHasInfiniteSolutions(U))
+//        throw std::runtime_error("SLE has infinitely many solutions");
 
-    x = std::make_unique<Vector>(getSolution(U, C, &output));
+    //    x = std::make_unique<Vector>(getSolution(U, C, &output));
 
-    output << "\nSolution:\n";
-    output << C << std::endl;
-    output << "\nError:\n";
-    output << calculateError(*A, *B, C) << std::endl;
-    output << "\nRelative Error:\n";
-    output << calculateRelativeError(*A, *B, C) << std::endl;
+//    output << "\nSolution:\n";
+//    output << C << std::endl;
+//    output << "\nError:\n";
+//    output << calculateError(*A, *B, C) << std::endl;
+//    output << "\nRelative Error:\n";
+//    output << calculateRelativeError(*A, *B, C) << std::endl;
 }

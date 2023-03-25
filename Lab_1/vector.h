@@ -15,24 +15,28 @@ public:
 
     Vector& operator=(const Vector&) = default;
     Vector& operator=(Vector&&) = default;
-    Vector& operator+(const Vector& other);
-    Vector& operator-(const Vector& other);
-    Vector& operator*(double value);
     double& operator[](size_t index);
     double operator[](size_t index) const;
 
-    size_t getSize() const;
+    size_t size() const;
 
-    void addValue(double value);
-    void removeValue();
+    void pushBack(double value);
+    void insert(size_t index, double value);
+    void remove(size_t index);
 
     double calculateEuclidianNorm() const;
 
     static Vector readFromFile(const std::string& filepath);
     static void writeToFile(const Vector& vector, const std::string& filepath);
 
+    friend Vector operator+(const Vector& lhs, const Vector& rhs);
+    friend Vector operator-(const Vector& lhs, const Vector& rhs);
+    friend Vector operator*(const Vector& vector, double value);
+
 private:
-    std::vector<double> vectorValues;
+    void checkIndex(size_t index);
+
+    std::vector<double> data;
 };
 
 #endif // VECTOR_H

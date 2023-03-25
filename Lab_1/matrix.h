@@ -32,10 +32,10 @@ public:
     size_t getNumRows() const;
     size_t getNumColumns() const;
 
-    void addRow();
-    void addColumn();
-    void removeRow();
-    void removeColumn();
+    void addRow(size_t index, double value = 0.0);
+    void addColumn(size_t index, double value = 0.0);
+    void removeRow(size_t index);
+    void removeColumn(size_t index);
 
     void reset(int numRows, int numColumns);
 

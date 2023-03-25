@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_matrix_operations">
      <attribute name="title">
@@ -146,7 +146,7 @@
      <attribute name="title">
       <string>SLE Solver</string>
      </attribute>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -277,9 +277,7 @@
     <string>Load matrix</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_save_A">
@@ -287,9 +285,7 @@
     <string>Save matrix</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_add_new_row_to_A">
@@ -297,9 +293,7 @@
     <string>Add new row</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_add_new_column_to_A">
@@ -307,9 +301,7 @@
     <string>Add new column</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_remove_row_from_A">
@@ -317,9 +309,7 @@
     <string>Remove row</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_remove_column_from_A">
@@ -327,9 +317,7 @@
     <string>Remove column</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_load_B">
@@ -337,9 +325,7 @@
     <string>Load from file</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_save_B">
@@ -347,9 +333,7 @@
     <string>Save to file</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_add_new_row_to_B">
@@ -357,9 +341,7 @@
     <string>Add row</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_remove_row_from_B">
@@ -367,9 +349,7 @@
     <string>Remove row</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_randomize_A">
@@ -377,9 +357,7 @@
     <string>Randomize...</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_randomize_B">
@@ -387,9 +365,7 @@
     <string>Randomize...</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_save_x">
@@ -397,9 +373,7 @@
     <string>Save to file</string>
    </property>
    <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
+    <font/>
    </property>
   </action>
   <action name="action_create_matrix_A">
